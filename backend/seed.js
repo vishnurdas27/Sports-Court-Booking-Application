@@ -2,7 +2,7 @@ const {sequelize, Court, Coach, Equipment, PricingRule, User} = require('./model
 
 const seedDatabase= async () =>{
     try {
-        await sequelize.sync({force:true})
+        await sequelize.sync({force:false})
         console.log('Database cleared and synced')
 
         const courts = await Court.bulkCreate([

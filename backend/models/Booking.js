@@ -8,6 +8,7 @@ const Booking = sequelize.define('Booking', {
         autoIncrement: true
     },
 
+
     // BOOKING TIMES
     startTime: {
         type: DataTypes.DATE,

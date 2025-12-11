@@ -1,9 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { checkAvailability, createBooking, getBookingsByDate } = require('../controllers/bookingController');
+const bookingController = require('../controllers/bookingController');
 
-router.post('/check', checkAvailability);
-router.post('/', createBooking)
-router.get('/', getBookingsByDate)
+// 1. Check Availability
+router.post('/check', bookingController.checkAvailability);
+
+// 2. Create Booking
+router.post('/', bookingController.createBooking);
+
+// 3. Get Bookings by Date (GET request with query param)
+router.get('/', bookingController.getBookingsByDate);
+
+// 4. Price Preview (This was missing causing the crash)
+router.post('/price-preview', bookingController.getPricePreview);
 
 module.exports = router;

@@ -5,6 +5,8 @@ const { sequelize } = require('./models'); // Imports the instance from models/i
 
 const courtRoutes = require('./routes/courtRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const coachRoutes = require('./routes/coachRoutes');      // <-- ADD THIS
+const equipmentRoutes = require('./routes/equipmentRoutes'); // <-- ADD THIS
 
 const app = express();
 
@@ -15,6 +17,8 @@ app.use(express.json());
 // Routes
 app.use('/courts', courtRoutes);
 app.use('/bookings', bookingRoutes);
+app.use('/coaches', coachRoutes);      
+app.use('/equipment', equipmentRoutes)
 
 app.get('/', (req, res) => {
   res.send('API is running...');
@@ -23,7 +27,7 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 
-sequelize.sync({ force: false}) // <--- CHANGE THIS BACK TO { alter: true } AFTER FIRST RUN
+sequelize.sync({ force: false}) 
   .then(() => {
     console.log('Database connected and synced!');
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

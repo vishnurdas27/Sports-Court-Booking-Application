@@ -1,7 +1,7 @@
 const {DataTypes} = require('sequelize')
 const sequelize = require('../config/database')
 
-const Coach=sequelize.define('Coach',{
+const Coach = sequelize.define('Coach', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey:true,
@@ -15,7 +15,7 @@ const Coach=sequelize.define('Coach',{
         type: DataTypes.STRING,
         allowNull: true
     },
-    hourleyRate: {
+    hourleyRate: {        // ✅ USE hourleyRate
         type: DataTypes.FLOAT,
         allowNull: false,
         defaultValue: 0
@@ -24,6 +24,6 @@ const Coach=sequelize.define('Coach',{
         type:DataTypes.BOOLEAN,
         defaultValue:true
     }
-})
+});
 
-module.exports = Coach
+module.exports = Coach;

@@ -1,29 +1,29 @@
 const {DataTypes} = require('sequelize')
 const sequelize = require('../config/database')
 
-const Court = sequelize.define('Court',{
+const Court = sequelize.define('Court', {
     id: {
-        type:DataTypes.INTEGER,
-        primaryKey:true,
+        type: DataTypes.INTEGER,
+        primaryKey: true,
         autoIncrement: true
     },
     name: {
         type: DataTypes.STRING,
-        allowNull:false
+        allowNull: false
     },
     type: {
-        type: DataTypes.ENUM('indoor','outdoor'),
-        allowNull:false
+        type: DataTypes.ENUM('indoor', 'outdoor'),
+        allowNull: false
     },
-    basePrice: {
+    basePrice: {                // ✅ USE basePrice
         type: DataTypes.FLOAT,
-        allowNull:false,
+        allowNull: false,
         defaultValue: 20.0
     },
     isActive: {
-        type:DataTypes.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         defaultValue: true
     }
-})
+});
 
-module.exports = Court
+module.exports = Court;

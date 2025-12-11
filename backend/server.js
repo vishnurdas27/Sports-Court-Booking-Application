@@ -19,6 +19,8 @@ app.use('/courts', courtRoutes);
 app.use('/bookings', bookingRoutes);
 app.use('/coaches', coachRoutes);      
 app.use('/equipment', equipmentRoutes)
+app.use('/auth', require('./routes/authRoutes.js'));
+app.use('/admin', require('./routes/adminRoutes'));
 
 app.get('/', (req, res) => {
   res.send('API is running...');

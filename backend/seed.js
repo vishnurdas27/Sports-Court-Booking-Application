@@ -3,7 +3,7 @@ const { sequelize, Court, Coach, Equipment, PricingRule, User } = require('./mod
 const seedDatabase = async () => {
   try {
     // ❗ Change to force: true ONLY if you want to reset database
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ force: false});
     console.log('Database synced.');
 
     /* ---------------------------

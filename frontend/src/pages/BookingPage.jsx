@@ -6,9 +6,12 @@ import {
   Loader, 
   Clock, 
   MapPin,
-  User
+  User,
+  LogOut // Added LogOut icon
 } from "lucide-react";
 import { format, addDays, subDays, isBefore } from "date-fns";
+import { useNavigate } from "react-router-dom"; // <--- 1. Import Navigation
+import { useAuth } from "../context/AuthContext"; // <--- 2. Import Auth Context
 import { fetchCourts, fetchBookingsByDate } from "../services/api";
 import BookingModal from "../components/BookingModal"; 
 
@@ -21,6 +24,10 @@ const BookingPage = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
+
+  // --- NEW AUTH HOOKS ---
+  const navigate = useNavigate();
+  const { user, logout } = useAuth(); // Get user and logout function
 
   // 1. Fetch Courts on Mount
   useEffect(() => {
@@ -54,6 +61,14 @@ const BookingPage = () => {
 
   // 3. Logic to Handle "Available" Click
   const handleSlotClick = (timeStr, court) => {
+    // --- AUTH CHECK ---
+    // Optional: Uncomment this if you want to block clicking entirely unless logged in
+    // if (!user) {
+    //   alert("Please login to book a court.");
+    //   navigate('/login');
+    //   return;
+    // }
+
     const [slotHour] = timeStr.split(":").map(Number);
     
     // Create start time object based on selected date and slot
@@ -88,9 +103,8 @@ const BookingPage = () => {
     const isBooked = dayBookings.some((booking) => {
       if (booking.courtId !== courtId) return false;
       
-      // --- ROBUST TIMEZONE FIX ---
-      // We manually shift the UTC time from DB to IST to get the correct hour integer
       const bookingDate = new Date(booking.startTime);
+      // Simple offset fix for display consistency
       const istOffset = 5.5 * 60 * 60 * 1000;
       const istDate = new Date(bookingDate.getTime() + istOffset);
       const bookingHourIST = istDate.getUTCHours();
@@ -139,6 +153,35 @@ const BookingPage = () => {
             </div>
           </div>
           
+          {/* --- NEW LOGIN/LOGOUT BUTTONS --- */}
+          <div className="flex items-center gap-4">
+            {user ? (
+              // IF LOGGED IN
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+                   <User className="w-4 h-4 text-slate-500" />
+                   <span>{user.name}</span>
+                </div>
+                <button 
+                  onClick={logout}
+                  className="text-slate-400 hover:text-red-600 transition-colors p-1"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              // IF LOGGED OUT
+              <button 
+                onClick={() => navigate('/login')}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                Login
+              </button>
+            )}
+          </div>
+
         </div>
       </header>
 

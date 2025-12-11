@@ -1,226 +1,251 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { 
-  X, Clock, MapPin, Plus, User, 
-  Volleyball, CheckCircle, Loader, Minus 
-} from "lucide-react";
-import { format } from "date-fns"; // ✅ Ensure date-fns is installed
+  X, Clock, MapPin,  Plus, Minus, User, 
+  Volleyball, CheckCircle, Loader, AlertCircle, 
+  IndianRupee
+} from 'lucide-react';
+import { format } from 'date-fns';
 
 import { 
   calculatePricePreview, 
   createBooking, 
   fetchCoaches, 
   fetchEquipment 
-} from "../services/api";
+} from '../services/api';
+
+import { useAuth } from '../Context/AuthContext';
 
 const BookingModal = ({ details, onClose, onBookingSuccess }) => {
+  const { user } = useAuth();   
   const [coaches, setCoaches] = useState([]);
   const [equipment, setEquipment] = useState([]);
   const [selectedCoachId, setSelectedCoachId] = useState(null);
   const [equipmentQuantities, setEquipmentQuantities] = useState({});
   const [pricePreview, setPricePreview] = useState(null);
+  const [calculating, setCalculating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ⚠️ TEMP: Hardcoded User ID (Replace with real Auth later)
-  const currentUserId = 1; 
-
-  // 1. Fetch Coaches & Equipment on Mount
+ 
   useEffect(() => {
-    const loadModalData = async () => {
+    const loadOptions = async () => {
       try {
-        const [coachesRes, equipmentRes] = await Promise.all([
+        const [coachRes, equipRes] = await Promise.all([
           fetchCoaches(),
           fetchEquipment()
         ]);
-        setCoaches(coachesRes.data || []);
-        setEquipment(equipmentRes.data || []);
+        setCoaches(coachRes.data || []);
+        setEquipment(equipRes.data || []);
       } catch (err) {
         console.error("Failed loading coaches/equipment:", err);
       }
     };
-    loadModalData();
+    loadOptions();
   }, []);
 
-  // 2. Real-time Price Preview
+// PRICE PREVIEW //
   useEffect(() => {
     if (!details) return;
 
     const getPrice = async () => {
+      setCalculating(true);
+
       const equipmentList = Object.entries(equipmentQuantities)
         .filter(([_, qty]) => qty > 0)
         .map(([id, qty]) => ({ id: Number(id), quantity: qty }));
 
-      // ✅ FIX: Format date as Local String (YYYY-MM-DDTHH:mm:ss)
-      // This prevents the browser from converting "10:00" to "04:30" (UTC)
       const startLocal = format(details.startTime, "yyyy-MM-dd'T'HH:mm:ss");
       const endLocal = format(details.endTime, "yyyy-MM-dd'T'HH:mm:ss");
 
       try {
-        const { data } = await calculatePricePreview({
+        const res = await calculatePricePreview({
           courtId: details.court.id,
-          startTime: startLocal, 
+          startTime: startLocal,
           endTime: endLocal,
           coachId: selectedCoachId,
-          equipmentList: equipmentList
+          equipmentList
         });
-        setPricePreview(data);
+
+        setPricePreview(res.data);
       } catch (err) {
         console.error("Price preview failed:", err);
+      } finally {
+        setCalculating(false);
       }
     };
 
-    getPrice();
+    const t = setTimeout(getPrice, 250);
+    return () => clearTimeout(t);
+
   }, [selectedCoachId, equipmentQuantities, details]);
 
-  // 3. Submit Booking
+//BOOKING SUBMIT //
   const handleSubmit = async () => {
+    if (!user) {
+      alert("You must be logged in to book!");
+      return;
+    }
+
     setIsSubmitting(true);
+
     const equipmentList = Object.entries(equipmentQuantities)
       .filter(([_, qty]) => qty > 0)
       .map(([id, qty]) => ({ id: Number(id), quantity: qty }));
 
-    // ✅ FIX: Send Local Time String
     const startLocal = format(details.startTime, "yyyy-MM-dd'T'HH:mm:ss");
     const endLocal = format(details.endTime, "yyyy-MM-dd'T'HH:mm:ss");
 
     try {
       await createBooking({
-        userId: currentUserId,
+        userId: user.id,        
         courtId: details.court.id,
         startTime: startLocal,
         endTime: endLocal,
         coachId: selectedCoachId,
         equipmentList
       });
-      
-      onBookingSuccess(); 
-      onClose(); 
-    } catch (err) {
-      alert("Booking Failed: " + (err.response?.data?.message || "Server error"));
-      setIsSubmitting(false); 
-    } 
+
+      onBookingSuccess();
+      onClose();
+
+    } catch (error) {
+      alert(error.response?.data?.message || "Booking failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const updateQuantity = (itemId, delta) => {
-    setEquipmentQuantities((prev) => {
-      const currentQty = prev[itemId] || 0;
-      const newQty = Math.max(0, currentQty + delta); 
-      return { ...prev, [itemId]: newQty };
+  // HANDLE EQUIPMENT//
+  const updateQty = (id, delta) => {
+    setEquipmentQuantities(prev => {
+      const current = prev[id] || 0;
+      return { ...prev, [id]: Math.max(0, current + delta) };
     });
   };
 
   if (!details) return null;
 
+  /* ------------------------------ UI ------------------------------ */
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-5 border-b bg-gray-50 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-800">Confirm Your Booking</h3>
-          <button onClick={onClose} className="p-2 bg-white rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition shadow-sm border">
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50 p-4"
+      onClick={onClose}>
+      
+      <div className="bg-white w-full max-w-lg rounded-xl shadow-xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}>
+
+        {/* HEADER */}
+        <div className="p-5 border-b flex justify-between items-center bg-gray-50">
+          <h3 className="text-xl font-bold text-gray-800">Complete Booking</h3>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 text-gray-500">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
-          
-          {/* Court Info */}
-          <div className="flex items-start gap-4 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-            <div className="bg-white p-2 rounded-full shadow-sm">
-              <MapPin className="w-6 h-6 text-emerald-600" />
-            </div>
+        {/* CONTENT */}
+        <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+
+          {/* COURT INFO */}
+          <div className="bg-emerald-50 p-4 rounded-lg flex gap-4 border">
+            <MapPin className="w-6 h-6 text-emerald-600" />
             <div>
-              <p className="font-bold text-lg text-emerald-900">{details.court.name}</p>
-              <div className="flex items-center gap-2 text-emerald-700 mt-1">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  {format(details.startTime, "h:mm a")} - {format(details.endTime, "h:mm a")}
-                </span>
-              </div>
-              <p className="text-xs text-emerald-600 mt-1 font-medium">
-                {format(details.startTime, "EEEE, MMMM d, yyyy")}
+              <p className="font-bold text-lg">{details.court.name}</p>
+              <p className="text-sm text-slate-600">
+                {format(details.startTime, "MMM d, yyyy")} — {details.timeStr}
               </p>
             </div>
           </div>
 
-          {/* Coaches */}
+          {/* COACH */}
           <div>
-            <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <User className="w-5 h-5 text-indigo-600" /> 
-              Select a Coach <span className="text-gray-400 text-sm font-normal">(Optional)</span>
+            <h4 className="font-bold mb-3 flex items-center gap-2">
+              <User className="w-4 h-4 text-indigo-600" /> Select a Coach
             </h4>
+
             <div className="grid grid-cols-2 gap-3">
-              {coaches.length > 0 ? (
-                coaches.map((coach) => (
-                  <button
-                    key={coach.id}
-                    onClick={() => setSelectedCoachId(selectedCoachId === coach.id ? null : coach.id)}
-                    className={`p-3 rounded-lg border text-sm text-left transition-all ${
-                      selectedCoachId === coach.id
-                        ? "bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-200"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50"
-                    }`}
-                  >
-                    <div className="font-bold">{coach.name}</div>
-                    <div className={`text-xs mt-1 ${selectedCoachId === coach.id ? "text-indigo-100" : "text-gray-500"}`}>
-                      +₹{coach.hourleyRate}/hr
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <p className="text-sm text-gray-400 italic col-span-2">No coaches available.</p>
-              )}
+              <button
+                onClick={() => setSelectedCoachId(null)}
+                className={`p-3 border rounded-lg text-sm font-medium ${
+                  selectedCoachId === null ? "bg-gray-800 text-white" : "bg-white"
+                }`}>
+                No Coach
+              </button>
+
+              {coaches.map(coach => (
+                <button 
+                  key={coach.id}
+                  onClick={() => setSelectedCoachId(coach.id)}
+                  className={`p-3 border rounded-lg text-sm ${
+                    selectedCoachId === coach.id ? "bg-indigo-600 text-white shadow-md" : "bg-white"
+                  }`}>
+                  {coach.name}
+                  <div className="text-xs mt-1 opacity-80">₹{coach.hourleyRate}/hr</div>
+                </button>
+              ))}
             </div>
+          </div>
+              {/* EQUIPMENT*/}
+          <div>
+            <h4 className="font-bold mb-3 flex items-center gap-2">
+              <Volleyball className="w-4 h-4 text-orange-600" /> Rent Equipment
+            </h4>
+
+            {equipment.map(item => (
+              <div key={item.id} className="flex justify-between p-3 bg-gray-50 rounded-lg border">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-gray-900">₹{item.pricePerUnit} / unit</p>
+                </div>
+
+                <div className="flex items-center gap-3 bg-white border rounded-full px-3 py-1">
+                  <button 
+                    className="text-white disabled:opacity-20"
+                    onClick={() => updateQty(item.id, -1)}
+                    disabled={!equipmentQuantities[item.id]}>
+                    <Minus className="w-4 h-4" />
+                  </button>
+
+                  <span className="font-bold">{equipmentQuantities[item.id] || 0}</span>
+
+                  <button 
+                    onClick={() => updateQty(item.id, 1)}
+                    className="text-white">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Equipment */}
-          <div>
-            <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <Volleyball className="w-5 h-5 text-orange-600" /> 
-              Rent Equipment <span className="text-gray-400 text-sm font-normal">(Optional)</span>
-            </h4>
-            <div className="space-y-3">
-              {equipment.length > 0 ? (
-                equipment.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center border border-gray-100 p-3 rounded-lg bg-white shadow-sm hover:border-orange-200 transition">
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">{item.name}</p>
-                      <p className="text-xs text-gray-500">₹{item.pricePerUnit} / unit</p>
-                    </div>
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1 border">
-                      <button className="w-8 h-8 flex items-center justify-center rounded-md bg-white border shadow-sm" onClick={() => updateQuantity(item.id, -1)} disabled={!equipmentQuantities[item.id]}>
-                        <Minus className="w-3 h-3 text-gray-600" />
-                      </button>
-                      <span className="font-bold w-4 text-center">{equipmentQuantities[item.id] || 0}</span>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-md bg-orange-500 text-white shadow-sm hover:bg-orange-600" onClick={() => updateQuantity(item.id, 1)}>
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-400 italic">No equipment available.</p>
-              )}
+          {pricePreview?.breakdown?.modifiers?.length > 0 && (
+            <div className="bg-yellow-50 border p-3 rounded text-xs">
+              <AlertCircle className="w-4 h-4 inline mr-1" />
+              <strong>Active Pricing Rules:</strong>
+              <ul className="list-disc ml-5 mt-1">
+                {pricePreview.breakdown.modifiers.map((m, i) => (
+                  <li key={i}>{m}</li>
+                ))}
+              </ul>
             </div>
-          </div>
+          )}
+
         </div>
 
-        {/* Footer */}
-        <div className="p-5 bg-gray-50 border-t flex justify-between items-center">
+        {/* FOOTER */}
+        {/* FOOTER */}
+        <div className="p-5 border-t bg-gray-50 flex justify-between items-center">
           <div>
-            <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Amount</p>
-            <span className="text-2xl font-extrabold text-emerald-700">
-              ₹{pricePreview ? pricePreview.total : "..."}
-            </span>
+            <p className="text-xs text-gray-500 font-bold uppercase">Total</p>
+            <div className="flex items-center text-2xl font-extrabold">
+              <IndianRupee className="w-5 h-5 text-emerald-600" />
+              {/* CHANGE .total TO .totalPrice */}
+              {calculating ? "..." : (pricePreview?.totalPrice || 0)} 
+            </div>
           </div>
-          <button onClick={handleSubmit} disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 font-bold shadow-lg disabled:opacity-70">
-            {isSubmitting ? <Loader className="w-5 h-5 animate-spin" /> : <>Confirm & Pay <CheckCircle className="w-5 h-5" /></>}
+
+          <button
+            disabled={isSubmitting || calculating}
+            onClick={handleSubmit}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl shadow-lg font-bold disabled:bg-gray-300">
+            {isSubmitting ? <Loader className="animate-spin w-5 h-5" /> : "Confirm"}
           </button>
         </div>
       </div>

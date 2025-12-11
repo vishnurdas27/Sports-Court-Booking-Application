@@ -1,4 +1,4 @@
-const { Booking, Court } = require("../models");
+const { Booking, Court, User } = require("../models"); // <--- Added User for Admin view
 const { calculateTotal } = require("../utils/priceCalculator");
 const { Op } = require("sequelize");
 
@@ -6,15 +6,12 @@ const { Op } = require("sequelize");
 |--------------------------------------------------------------------------
 | HELPER: IST → UTC
 |--------------------------------------------------------------------------
-| Ensures that a time string like "10:00" is treated as "10:00 IST"
-| and converted to the correct absolute UTC time for the database.
 */
 function convertISTtoUTC(dateString) {
-  // 1. Remove 'Z' or existing offsets
+  if (!dateString) return new Date();
+  // 1. Remove 'Z' or existing offsets to get raw date string
   const cleanDateStr = dateString.replace("Z", "").split("+")[0];
-
   // 2. Append +05:30 to force Date object to interpret it as IST
-  // This creates the correct UTC timestamp (e.g. 10:00 IST -> 04:30 UTC)
   return new Date(`${cleanDateStr}+05:30`);
 }
 
@@ -92,10 +89,10 @@ const createBooking = async (req, res) => {
     const court = await Court.findByPk(courtId);
     if (!court) return res.status(404).json({ message: "Court Not Found" });
 
-    // Calculate Price using original strings (preserves local hour logic)
+    // Calculate Price
     const pricingResult = await calculateTotal(
       court,
-      startTime,
+      startTime, // Pass original string for Day/Hour logic
       endTime,
       coachId,
       equipmentList
@@ -112,6 +109,7 @@ const createBooking = async (req, res) => {
       priceBreakdown: pricingResult.breakdown
     });
 
+    // Handle Many-to-Many Equipment Relationship
     if (equipmentList && equipmentList.length > 0) {
       for (const item of equipmentList) {
         await newBooking.addEquipment(item.id, {
@@ -133,7 +131,7 @@ const createBooking = async (req, res) => {
 
 /*
 |--------------------------------------------------------------------------
-| 3. GET BOOKINGS BY DATE
+| 3. GET BOOKINGS BY DATE (For Booking Grid)
 |--------------------------------------------------------------------------
 */
 const getBookingsByDate = async (req, res) => {
@@ -169,10 +167,31 @@ const getBookingsByDate = async (req, res) => {
 
 /*
 |--------------------------------------------------------------------------
-| 4. GET PRICE PREVIEW
+| 4. GET ALL BOOKINGS (For Admin Panel)
 |--------------------------------------------------------------------------
 */
-const getPricePreview = async (req, res) => {
+const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.findAll({
+      include: [
+        { model: User, attributes: ['name', 'email'] }, // Shows User Info
+        { model: Court, attributes: ['name'] }          // Shows Court Name
+      ],
+      order: [['startTime', 'DESC']]
+    });
+    res.json(bookings);
+  } catch (error) {
+    console.error("Admin Fetch Error:", error);
+    res.status(500).json({ message: 'Failed to fetch bookings' });
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| 5. PRICE PREVIEW (For Modal)
+|--------------------------------------------------------------------------
+*/
+const previewPrice = async (req, res) => {
   const { courtId, startTime, endTime, coachId, equipmentList } = req.body;
 
   try {
@@ -189,7 +208,7 @@ const getPricePreview = async (req, res) => {
     );
 
     return res.status(200).json({
-      total: pricingResult.total,
+      totalPrice: pricingResult.total, // Note: Frontend expects 'totalPrice'
       breakdown: pricingResult.breakdown,
       message: "Price preview successful"
     });
@@ -200,10 +219,11 @@ const getPricePreview = async (req, res) => {
   }
 };
 
-// ✅ EXPORT ALL FUNCTIONS HERE
+// ✅ EXPORT ALL FUNCTIONS
 module.exports = {
   checkAvailability,
   createBooking,
   getBookingsByDate,
-  getPricePreview 
+  getAllBookings, // Required for Admin
+  previewPrice    // Required for Modal
 };

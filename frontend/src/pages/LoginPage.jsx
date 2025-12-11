@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // Check your folder casing (Context vs context)
+import { useAuth } from '../context/AuthContext'; 
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, ArrowRight, Loader } from 'lucide-react';
 
 const LoginPage = () => {
-  // State for toggling between Login and Register views
   const [isLogin, setIsLogin] = useState(true);
   
-  // Form State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -21,13 +19,11 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Handle Input Changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(''); // Clear errors when user types
+    setError(''); 
   };
 
-  // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -38,14 +34,8 @@ const LoginPage = () => {
       : 'http://localhost:5000/auth/register';
 
     try {
-      // 1. Send Request
       const { data } = await axios.post(url, formData);
-
-      // 2. Save User & Token (Context)
       login(data);
-
-      // 3. Redirect
-      // alert(isLogin ? 'Welcome back!' : 'Account created successfully!');
       navigate('/'); 
       
     } catch (err) {
@@ -59,10 +49,7 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col md:flex-row">
         
-        {/* Visual Side (Optional - keeps it simple for now, just main form area) */}
         <div className="w-full p-8 md:p-10">
-          
-          {/* Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-extrabold text-slate-900">
               {isLogin ? 'Welcome Back' : 'Create Account'}
@@ -73,18 +60,13 @@ const LoginPage = () => {
                 : 'Sign up to start booking your courts'}
             </p>
           </div>
-
-          {/* Error Message */}
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg flex items-center justify-center">
               {error}
             </div>
           )}
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             
-            {/* Name Input (Only for Register) */}
             {!isLogin && (
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -102,7 +84,6 @@ const LoginPage = () => {
               </div>
             )}
 
-            {/* Email Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-gray-400" />
@@ -118,7 +99,6 @@ const LoginPage = () => {
               />
             </div>
 
-            {/* Password Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-gray-400" />
@@ -134,7 +114,6 @@ const LoginPage = () => {
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -151,7 +130,6 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Toggle Link */}
           <div className="mt-8 text-center">
             <p className="text-slate-600 text-sm">
               {isLogin ? "Don't have an account?" : "Already have an account?"}

@@ -15,7 +15,7 @@ const Coach = sequelize.define('Coach', {
         type: DataTypes.STRING,
         allowNull: true
     },
-    hourleyRate: {        // ✅ USE hourleyRate
+    hourleyRate: {        
         type: DataTypes.FLOAT,
         allowNull: false,
         defaultValue: 0

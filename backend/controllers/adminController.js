@@ -1,6 +1,6 @@
 const { Equipment, Coach, PricingRule, Court } = require('../models');
 
-// --- EQUIPMENT ---
+
 const addEquipment = async (req, res) => {
   try {
     const item = await Equipment.create(req.body);
@@ -15,7 +15,7 @@ const deleteEquipment = async (req, res) => {
   } catch (e) { res.status(500).json({ message: 'Delete failed' }); }
 };
 
-// --- COACHES ---
+
 const addCoach = async (req, res) => {
   try {
     const coach = await Coach.create(req.body);
@@ -30,7 +30,7 @@ const deleteCoach = async (req, res) => {
   } catch (e) { res.status(500).json({ message: 'Delete failed' }); }
 };
 
-// --- PRICING RULES ---
+
 const getRules = async (req, res) => {
   const rules = await PricingRule.findAll();
   res.json(rules);
@@ -38,7 +38,6 @@ const getRules = async (req, res) => {
 
 const addRule = async (req, res) => {
   try {
-    // Expected body: { name, type: 'peak_hour', multiplier: 1.5, startTime: '18:00', endTime: '21:00' }
     const rule = await PricingRule.create(req.body);
     res.status(201).json(rule);
   } catch (e) { res.status(500).json({ message: 'Error adding rule' }); }
@@ -51,7 +50,7 @@ const deleteRule = async (req, res) => {
   } catch (e) { res.status(500).json({ message: 'Delete failed' }); }
 };
 
-// --- COURT EDIT (Enable/Disable) ---
+
 const updateCourt = async (req, res) => {
     try {
         const { isActive, basePricePerHour } = req.body;

@@ -9,12 +9,12 @@ const {
 } = require('../controllers/bookingController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// Specific routes first
-router.get('/all', protect, admin, getAllBookings); // <--- PUT THIS NEAR THE TOP
+
+router.get('/all', protect, admin, getAllBookings); 
 router.post('/check', checkAvailability);
 router.post('/price-preview', previewPrice);
 
-// Root routes next
+
 router.post('/', protect, createBooking); 
 router.get('/', getBookingsByDate); 
 

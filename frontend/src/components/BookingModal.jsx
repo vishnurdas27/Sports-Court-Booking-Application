@@ -78,7 +78,7 @@ const BookingModal = ({ details, onClose, onBookingSuccess }) => {
 
   }, [selectedCoachId, equipmentQuantities, details]);
 
-//BOOKING SUBMIT //
+
   const handleSubmit = async () => {
     if (!user) {
       alert("You must be logged in to book!");
@@ -114,7 +114,7 @@ const BookingModal = ({ details, onClose, onBookingSuccess }) => {
     }
   };
 
-  // HANDLE EQUIPMENT//
+
   const updateQty = (id, delta) => {
     setEquipmentQuantities(prev => {
       const current = prev[id] || 0;
@@ -124,7 +124,6 @@ const BookingModal = ({ details, onClose, onBookingSuccess }) => {
 
   if (!details) return null;
 
-  /* ------------------------------ UI ------------------------------ */
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50 p-4"
       onClick={onClose}>
@@ -192,7 +191,7 @@ const BookingModal = ({ details, onClose, onBookingSuccess }) => {
               <div key={item.id} className="flex justify-between p-3 bg-gray-50 rounded-lg border">
                 <div>
                   <p className="font-medium">{item.name}</p>
-                  <p className="text-xs text-gray-900">₹{item.pricePerUnit} / unit</p>
+                  <p className="text-xs text-gray-500">₹{item.pricePerUnit} / unit</p>
                 </div>
 
                 <div className="flex items-center gap-3 bg-white border rounded-full px-3 py-1">
@@ -230,13 +229,11 @@ const BookingModal = ({ details, onClose, onBookingSuccess }) => {
         </div>
 
         {/* FOOTER */}
-        {/* FOOTER */}
         <div className="p-5 border-t bg-gray-50 flex justify-between items-center">
           <div>
             <p className="text-xs text-gray-500 font-bold uppercase">Total</p>
             <div className="flex items-center text-2xl font-extrabold">
               <IndianRupee className="w-5 h-5 text-emerald-600" />
-              {/* CHANGE .total TO .totalPrice */}
               {calculating ? "..." : (pricePreview?.totalPrice || 0)} 
             </div>
           </div>

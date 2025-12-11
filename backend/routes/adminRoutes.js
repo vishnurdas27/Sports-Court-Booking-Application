@@ -8,7 +8,7 @@ const {
     updateCourt
 } = require('../controllers/adminController');
 
-// All routes require Login + Admin Role
+
 router.use(protect, admin);
 
 // Equipment

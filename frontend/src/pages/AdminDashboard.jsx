@@ -13,7 +13,7 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('courts');
 
-  // --- DATA STATES ---
+
   const [data, setData] = useState({
     courts: [],
     bookings: [],
@@ -22,7 +22,7 @@ const AdminDashboard = () => {
     coaches: []
   });
 
-  // --- FORM STATES ---
+
   const [forms, setForms] = useState({
     court: { name: '', type: 'indoor', basePricePerHour: 20 },
     rule: { name: '', type: 'peak_hour', multiplier: 1.5, startTime: '18:00', endTime: '21:00' },
@@ -30,13 +30,13 @@ const AdminDashboard = () => {
     coach: { name: '', hourlyRate: 20, specialization: '' }
   });
 
-  // --- DATA LOADING ---
+  
   const loadData = useCallback(async () => {
     if (!user?.token) return;
     const token = user.token;
 
     try {
-      if (activeTab === 'courts') setData(prev => ({ ...prev, courts: [] })); // clear before fetch
+      if (activeTab === 'courts') setData(prev => ({ ...prev, courts: [] }));
       
       let result = [];
       if (activeTab === 'courts') result = (await fetchCourts()).data;
@@ -55,7 +55,6 @@ const AdminDashboard = () => {
     loadData();
   }, [loadData]);
 
-  // --- GENERIC HANDLERS ---
   const handleCreate = async (apiFunc, formKey, defaultState) => {
     try {
       await apiFunc(forms[formKey], user.token);
@@ -86,7 +85,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Helper to update form state
+
   const updateForm = (key, field, value) => {
     setForms(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
   };
@@ -96,7 +95,6 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Admin Control Panel</h1>
 
-        {/* --- NAVIGATION --- */}
         <div className="flex flex-wrap gap-4 mb-8">
           {[
             { id: 'courts', icon: LayoutGrid, label: 'Courts' },
@@ -119,7 +117,6 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* --- COURTS TAB --- */}
         {activeTab === 'courts' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-4">
@@ -154,7 +151,6 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* --- EQUIPMENT TAB --- */}
         {activeTab === 'equipment' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -178,7 +174,6 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* --- COACHES TAB --- */}
         {activeTab === 'coaches' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-4">
@@ -202,7 +197,6 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* --- RULES TAB --- */}
         {activeTab === 'rules' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-4">
@@ -237,7 +231,6 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* --- BOOKINGS TAB --- */}
         {activeTab === 'bookings' && (
           <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
             {data.bookings.length === 0 ? (

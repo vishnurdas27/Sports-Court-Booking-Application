@@ -19,12 +19,12 @@ const User = sequelize.define('User', {
       isEmail: true
     }
   },
-  // --- ADD THIS SECTION ---
+
   password: { 
     type: DataTypes.STRING,
     allowNull: false
   },
-  // ------------------------
+
   role: {
     type: DataTypes.ENUM('admin', 'user'),
     defaultValue: 'user'

@@ -7,11 +7,11 @@ import {
   Clock, 
   MapPin,
   User,
-  LogOut // Added LogOut icon
+  LogOut 
 } from "lucide-react";
 import { format, addDays, subDays, isBefore } from "date-fns";
-import { useNavigate } from "react-router-dom"; // <--- 1. Import Navigation
-import { useAuth } from "../context/AuthContext"; // <--- 2. Import Auth Context
+import { useNavigate } from "react-router-dom"; 
+import { useAuth } from "../context/AuthContext"; 
 import { fetchCourts, fetchBookingsByDate } from "../services/api";
 import BookingModal from "../components/BookingModal"; 
 
@@ -20,16 +20,15 @@ const BookingPage = () => {
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dayBookings, setDayBookings] = useState([]);
-  
-  // Modal State
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
 
-  // --- NEW AUTH HOOKS ---
-  const navigate = useNavigate();
-  const { user, logout } = useAuth(); // Get user and logout function
 
-  // 1. Fetch Courts on Mount
+  const navigate = useNavigate();
+  const { user, logout } = useAuth(); 
+
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -44,7 +43,7 @@ const BookingPage = () => {
     loadData();
   }, []);
 
-  // 2. Fetch Bookings when Date Changes
+
   const loadBookings = async () => {
     try {
       const dateStr = format(currentDate, "yyyy-MM-dd");
@@ -59,19 +58,11 @@ const BookingPage = () => {
     loadBookings();
   }, [currentDate]);
 
-  // 3. Logic to Handle "Available" Click
   const handleSlotClick = (timeStr, court) => {
-    // --- AUTH CHECK ---
-    // Optional: Uncomment this if you want to block clicking entirely unless logged in
-    // if (!user) {
-    //   alert("Please login to book a court.");
-    //   navigate('/login');
-    //   return;
-    // }
 
     const [slotHour] = timeStr.split(":").map(Number);
     
-    // Create start time object based on selected date and slot
+
     const slotStart = new Date(currentDate);
     slotStart.setHours(slotHour, 0, 0, 0);
 
@@ -87,24 +78,20 @@ const BookingPage = () => {
     setIsModalOpen(true);
   };
 
-  // 4. Determine Slot Status (Past/Booked/Available)
+
   const getSlotStatus = (timeStr, courtId) => {
     const [slotHour] = timeStr.split(":").map(Number);
     const now = new Date();
-    
-    // Create the date object for the specific slot time
+
     const slotDate = new Date(currentDate);
     slotDate.setHours(slotHour, 0, 0, 0);
 
-    // Check if past
     if (isBefore(slotDate, now)) return "past";
 
-    // Check if booked
     const isBooked = dayBookings.some((booking) => {
       if (booking.courtId !== courtId) return false;
       
       const bookingDate = new Date(booking.startTime);
-      // Simple offset fix for display consistency
       const istOffset = 5.5 * 60 * 60 * 1000;
       const istDate = new Date(bookingDate.getTime() + istOffset);
       const bookingHourIST = istDate.getUTCHours();
@@ -117,8 +104,6 @@ const BookingPage = () => {
 
   const handlePrevDay = () => setCurrentDate((prev) => subDays(prev, 1));
   const handleNextDay = () => setCurrentDate((prev) => addDays(prev, 1));
-
-  // --- RENDERING ---
 
   if (loading) {
     return (
@@ -140,7 +125,6 @@ const BookingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900 flex flex-col font-sans">
       
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -153,10 +137,8 @@ const BookingPage = () => {
             </div>
           </div>
           
-          {/* --- NEW LOGIN/LOGOUT BUTTONS --- */}
           <div className="flex items-center gap-4">
             {user ? (
-              // IF LOGGED IN
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-slate-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
                    <User className="w-4 h-4 text-slate-500" />
@@ -171,7 +153,6 @@ const BookingPage = () => {
                 </button>
               </div>
             ) : (
-              // IF LOGGED OUT
               <button 
                 onClick={() => navigate('/login')}
                 className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
@@ -186,8 +167,7 @@ const BookingPage = () => {
       </header>
 
       <main className="flex-1 max-w-7xl mx-auto w-full py-8 px-4 sm:px-6 lg:px-8 flex flex-col">
-        
-        {/* Navigation Toolbar */}
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center bg-white border border-gray-200 rounded-lg shadow-sm p-1">
             <button 
@@ -224,19 +204,18 @@ const BookingPage = () => {
           </div>
         </div>
 
-        {/* Schedule Grid */}
+
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
           <div className="overflow-auto flex-1 custom-scrollbar">
             <div 
               className="grid"
               style={{ gridTemplateColumns: gridTemplate }}
             >
-              {/* Header Row: Time Label */}
+
               <div className="sticky top-0 z-20 bg-gray-50 border-b border-gray-200 p-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center flex items-center justify-center sticky-left-col">
                 <Clock className="w-4 h-4 mr-1.5" /> Time
               </div>
               
-              {/* Header Row: Court Names */}
               {courts.map((court) => (
                 <div 
                   key={court.id} 
@@ -258,15 +237,13 @@ const BookingPage = () => {
                 </div>
               ))}
 
-              {/* Grid Body */}
               {timeSlots.map((time) => (
                 <React.Fragment key={time}>
-                  {/* Time Column */}
                   <div className="sticky left-0 z-10 bg-white border-b border-r border-gray-200 p-3 text-xs font-medium text-slate-500 flex items-start justify-center pt-5 sticky-left-col">
                     {time}
                   </div>
 
-                  {/* Slot Cells */}
+                  
                   {courts.map((court) => {
                     const status = getSlotStatus(time, court.id);
 
@@ -312,14 +289,14 @@ const BookingPage = () => {
         </div>
       </main>
 
-      {/* --- MODAL --- */}
+
       {isModalOpen && bookingDetails && (
         <BookingModal 
           details={bookingDetails}
           onClose={() => setIsModalOpen(false)}
           onBookingSuccess={() => {
             setIsModalOpen(false);
-            loadBookings(); // Refresh the grid to show the new red box!
+            loadBookings(); 
           }}
         />
       )}

@@ -8,10 +8,7 @@ const Coach = require('./Coach');
 const Equipment = require('./Equipment');
 const PricingRule = require('./PricingRule');
 
-// --- ASSOCIATIONS ---
 
-// 1. USER <-> BOOKING (One-to-Many)
-// A booking MUST belong to a user (allowNull: false)
 User.hasMany(Booking, { foreignKey: 'userId' });
 Booking.belongsTo(User, { 
     foreignKey: {
@@ -20,8 +17,7 @@ Booking.belongsTo(User, {
     }
 });
 
-// 2. COURT <-> BOOKING (One-to-Many)
-// A booking MUST belong to a court (allowNull: false)
+
 Court.hasMany(Booking, { foreignKey: 'courtId' });
 Booking.belongsTo(Court, { 
     foreignKey: {
@@ -30,8 +26,7 @@ Booking.belongsTo(Court, {
     }
 });
 
-// 3. COACH <-> BOOKING (One-to-Many)
-// A booking MIGHT have a coach (allowNull: true is default, but good to be explicit)
+
 Coach.hasMany(Booking, { foreignKey: 'coachId' });
 Booking.belongsTo(Coach, { 
     foreignKey: {
@@ -40,8 +35,7 @@ Booking.belongsTo(Coach, {
     }
 });
 
-// 4. BOOKING <-> EQUIPMENT (Many-to-Many)
-// Define the specific Junction Table with extra 'quantity' field
+
 const BookingEquipment = sequelize.define('BookingEquipment', {
   quantity: {
     type: DataTypes.INTEGER,
